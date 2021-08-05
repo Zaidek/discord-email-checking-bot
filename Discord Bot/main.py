@@ -117,6 +117,19 @@ async def configure(context):
     await channels_select_menu.delete()
 
     await channel.send("final chosen email channel: {0}".format(str(email_channel)))
+    await channel.send("....")
+
+    # EMAIL CONFIGURATION
+    await channel.send("Details about the email will be sent via direct message.")
+
+    direct_message_channel = await author.create_dm()
+    await direct_message_channel.send("Please input the email address to be viewed. (It is recommened to create a blank email and CC all emails to this one for privacy security)")
+
+    def check(msg):
+        return msg.channel == direct_message_channel 
+
+    email_response = await bot.wait_for('message', check = check)
+    print(email_response.content)
     
 
 # START UP EVENT
