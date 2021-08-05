@@ -133,11 +133,21 @@ async def configure(context):
         return matches
 
     def email_check(msg):
-        return msg.channel == direct_message_channel and valid_email(msg.content)
+        return msg.channel == direct_message_channel and valid_email(msg.content) and msg.author == author
 
 
     email_response = await bot.wait_for('message', check = email_check)
     await direct_message_channel.send("Email address accepted: {0}".format(email_response.content))
+
+    def password_check(msg):
+        return msg.channel == direct_message_channel and msg.author == author
+
+    await direct_message_channel.send("Please input the password to the email")
+    password_response = await bot.wait_for('message', check = password_check)
+    await direct_message_channel.send("Password accepted: {0}".format(password_response.content))
+
+
+
     
 
 # START UP EVENT
