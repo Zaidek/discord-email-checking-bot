@@ -6,6 +6,7 @@ import discord_components
 # IMPORT STANDARD LIBRARIES
 import numpy as np
 import os
+import re as regex
 
 #INITALISE BOT COMMANDS
 bot = commands.Bot(command_prefix="EM")
@@ -125,11 +126,18 @@ async def configure(context):
     direct_message_channel = await author.create_dm()
     await direct_message_channel.send("Please input the email address to be viewed. (It is recommened to create a blank email and CC all emails to this one for privacy security)")
 
-    def check(msg):
-        return msg.channel == direct_message_channel 
+    # USES A STANDARD EMAIL REGEX (RFC 5322 Official Standard)
+    def valid_email(email_address):
+        pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+        matches = regex.match(pattern, email_address)
+        return matches
 
-    email_response = await bot.wait_for('message', check = check)
-    print(email_response.content)
+    def email_check(msg):
+        return msg.channel == direct_message_channel and valid_email(msg.content)
+
+
+    email_response = await bot.wait_for('message', check = email_check)
+    await direct_message_channel.send("Email address accepted: {0}".format(email_response.content))
     
 
 # START UP EVENT
