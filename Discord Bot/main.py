@@ -146,6 +146,10 @@ async def configure(context):
     password_response = await bot.wait_for('message', check = password_check)
     await direct_message_channel.send("Password accepted: {0}".format(password_response.content))
 
+    await direct_message_channel.send("....")
+    await direct_message_channel.send("returning to {0}".format(channel))
+
+    await password_response.delete()
 
 
     
