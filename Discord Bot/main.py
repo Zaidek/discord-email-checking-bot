@@ -152,7 +152,11 @@ async def configure(context):
     await password_response.delete()
 
 
-    
+# HELP COMMAND
+@bot.command()
+async def help(context):
+
+
 
 # START UP EVENT
 @bot.event
