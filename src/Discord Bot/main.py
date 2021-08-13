@@ -6,6 +6,7 @@ import discord_components
 # IMPORT STANDARD LIBRARIES
 import numpy as np
 import os
+import re as regex
 
 #INITALISE BOT COMMANDS
 bot = commands.Bot(command_prefix="EM")
@@ -117,7 +118,45 @@ async def configure(context):
     await channels_select_menu.delete()
 
     await channel.send("final chosen email channel: {0}".format(str(email_channel)))
-    
+    await channel.send("....")
+
+    # EMAIL CONFIGURATION
+    await channel.send("Details about the email will be sent via direct message.")
+
+    direct_message_channel = await author.create_dm()
+    await direct_message_channel.send("Please input the email address to be viewed. (It is recommened to create a blank email and CC all emails to this one for privacy security)")
+
+    # USES A STANDARD EMAIL REGEX (RFC 5322 Official Standard)
+    def valid_email(email_address):
+        pattern = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+        matches = regex.match(pattern, email_address)
+        return matches
+
+    def email_check(msg):
+        return msg.channel == direct_message_channel and valid_email(msg.content) and msg.author == author
+
+
+    email_response = await bot.wait_for('message', check = email_check)
+    await direct_message_channel.send("Email address accepted: {0}".format(email_response.content))
+
+    def password_check(msg):
+        return msg.channel == direct_message_channel and msg.author == author
+
+    await direct_message_channel.send("Please input the password to the email")
+    password_response = await bot.wait_for('message', check = password_check)
+    await direct_message_channel.send("Password accepted: {0}".format(password_response.content))
+
+    await direct_message_channel.send("....")
+    await direct_message_channel.send("returning to {0}".format(channel))
+
+    await password_response.delete()
+
+
+# HELP COMMAND
+@bot.command()
+async def help(context):
+
+
 
 # START UP EVENT
 @bot.event
