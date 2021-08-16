@@ -41,7 +41,7 @@ INSTALLED_APPS = [
 
     
     # own apps
-    'emailmanager',
+    'email_viewer',
 ]
 
 MIDDLEWARE = [
