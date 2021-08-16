@@ -155,7 +155,7 @@ async def configure(context):
 # HELP COMMAND
 @bot.command()
 async def help(context):
-
+    return
 
 
 # START UP EVENT
