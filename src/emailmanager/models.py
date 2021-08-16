@@ -6,7 +6,7 @@ from django.db import models
 
 
 # EMAIL CLASS
-class Emails(models.Model):
-    sender = models.TextField()
-    title = models.TextField()
+class Email(models.Model):
+    sender = models.CharField(max_length = 100)
+    title = models.CharField(max_length = 100)
     content = models.TextField() 

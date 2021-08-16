@@ -41,7 +41,7 @@ INSTALLED_APPS = [
 
     
     # own apps
-    'emailmanager.apps.EmailmanagerConfig',
+    'emailmanager',
 ]
 
 MIDDLEWARE = [
