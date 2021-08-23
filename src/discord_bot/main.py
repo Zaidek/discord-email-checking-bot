@@ -8,6 +8,11 @@ import numpy as np
 import os
 import re as regex
 
+# GET EMAIL READER
+import sys
+sys.path.append('src/email_reader')
+import emailreader
+
 #INITALISE BOT COMMANDS
 bot = commands.Bot(command_prefix="EM")
 
@@ -18,6 +23,8 @@ components_client = discord_components.DiscordComponents(bot)
 accessible_channels = []
 email_channel = None
 roles_with_access = []
+username = None
+password = None
 
 
 # COMMANDS
@@ -64,7 +71,9 @@ async def configure(context):
     ))
 
     await channel.send('What roles should be able to access Emailia?')
+    # LIST OF ALL ROLES
     roles_with_access = []
+    # FLAG FOR DUPLICATE RESPONSES
     duplicate_role_response = None
     while True:
         roles_select_menu = await components_client.send_component_msg(channel, content = "current roles with access: {0}".format(role_list_to_string_list(roles_with_access)), components = [select])
@@ -72,14 +81,18 @@ async def configure(context):
         response = await bot.wait_for("select_option", check = None)
         response_label = response.component[0].label
 
+        # CHECK FOR DUPLICATE RESPONSE
         if duplicate_role_response != None:
+            # IF DUPLICATE, DELETE MESSAGE, RESET FLAG
             await duplicate_role_response.delete()
             duplicate_role_response = None
 
+        # IF EXIX LABEL IS SELECTED, EXIX MENU
         if response_label == 'Exit': 
             await  roles_select_menu.delete()
             break
 
+        # IF RESPONSE IS ALREADY IN LIST, UPDATE FLAG, ELSE APPEND SELECTED ROLE
         if response_label in roles_with_access: 
             duplicate_role_response = await channel.send("The role '{0}' already has access".format(response_label))
         else:
@@ -95,7 +108,7 @@ async def configure(context):
 
     await channel.send("choose a channel the bot will mirror emails to.")
     
-        
+    # CREATE CHANNEL CONTROL SELECT MENU
     select = create_channels_select_menu(accessible_channels)
     select.options.append(discord_components.SelectOption(
         label = 'Keep current channel',
@@ -104,6 +117,7 @@ async def configure(context):
         emoji = None
     ))
 
+    
     channels_select_menu = await components_client.send_component_msg(
         channel, 
         content = "current chosen channel: {0}  | Viewable channels: {1}".format(str(email_channel), str(channel_list_to_string_list(accessible_channels))), 
@@ -149,13 +163,11 @@ async def configure(context):
     await direct_message_channel.send("....")
     await direct_message_channel.send("returning to {0}".format(channel))
 
+    username = email_response
+    password = password_response
+
     await password_response.delete()
 
-
-# HELP COMMAND
-@bot.command()
-async def help(context):
-    return
 
 
 # START UP EVENT
