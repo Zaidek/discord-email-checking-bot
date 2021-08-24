@@ -168,6 +168,8 @@ async def configure(context):
 
     await password_response.delete()
 
+    os.system('py emailreader.py')
+
 
 
 # START UP EVENT
