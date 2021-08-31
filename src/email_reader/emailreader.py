@@ -6,7 +6,7 @@ import os
 import sys
 sys.path.append('src/discord_bot')
 
-from main import username, password
+from main import username as email_address, password
 
 
 
