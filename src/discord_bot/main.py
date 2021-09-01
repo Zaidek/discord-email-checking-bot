@@ -164,7 +164,7 @@ async def configure(context):
     await direct_message_channel.send("returning to {0}".format(channel))
 
     set_username_and_password(email_response, password_response)
-    os.system('py emailreader.py')
+    os.system('py src/email_reader/emailreader.py')
 
 
 
