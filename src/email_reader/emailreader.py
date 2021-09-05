@@ -10,7 +10,7 @@ class Gmail():
     def __init__(self):
         self.username = None
         self.password = None
-        self.imap = None
+        self.imap_client = None
 
     def login(self, username, password):
         
@@ -20,26 +20,35 @@ class Gmail():
         self.imap = imaplib.IMAP4_SSL(host = 'imap.gmail.com', port = 993)
 
         # Try connect to Gmail
-        is_logged_in, details = self.imap.login(username, password)
+        is_logged_in, details = self.imap_client.login(username, password)
         if not is_logged_in: print("Login Failed")
         else:
             print("Login Successful!")
 
-    def inbox(self):
-        self.imap.select('inbox')
+    def inbox(self, readonly = True):
+        self.imap_client.select('inbox')
 
     def get_unseen_mail(self):
+        _, data = self.imap_client.search(None, 'UNSEEN')
+        emails = extract_email_message(data)
+        return emails
+        
+    def get_all_mail(self):
+        _, data = self.imap.client.search(None, "ALL")
+        emails = extract_email_message(data)
+        return emails
+        
+    def extract_email_message(self, data):
         emails = []
-        _, data = self.imap.search(None, 'UNSEEN')
         for email_number in data[0].split():
-            _, email_data = self.imap.fetch(email_number, '(RFC822)')
+            _, email_data = self.imap_client.fetch(email_number, '(RFC822)')
             _, email_in_bytes = email_data[0]
             email_in_text = email.message_from_bytes(email_in_bytes)
             new_email = Email()
             new_email.get_mail(email_in_text)
             emails.append(new_email)
-        print("All emails seen")
-        
+        return emails
+    
 
     def main(self, username, password):
         self.login(username, password)
@@ -69,13 +78,6 @@ class Email():
                 self.content = content.decode()
             
                
-                
-
-
-
-        
-
-
 # Starter function 
 if __name__ == '__main__':
     obj = Gmail()
