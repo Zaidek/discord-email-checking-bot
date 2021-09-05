@@ -13,6 +13,9 @@ import sys
 sys.path.append('src/email_reader')
 import emailreader
 
+sys.path.append('src')
+from settings_secrets import set_username_and_password
+
 #INITALISE BOT COMMANDS
 bot = commands.Bot(command_prefix="EM")
 
@@ -23,9 +26,6 @@ components_client = discord_components.DiscordComponents(bot)
 accessible_channels = []
 email_channel = None
 roles_with_access = []
-username = None
-password = None
-
 
 # COMMANDS
 @bot.command()
@@ -158,17 +158,13 @@ async def configure(context):
 
     await direct_message_channel.send("Please input the password to the email")
     password_response = await bot.wait_for('message', check = password_check)
-    await direct_message_channel.send("Password accepted: {0}".format(password_response.content))
+    await direct_message_channel.send("Password accepted")
 
     await direct_message_channel.send("....")
     await direct_message_channel.send("returning to {0}".format(channel))
 
-    username = email_response
-    password = password_response
-
-    await password_response.delete()
-
-    os.system('py emailreader.py')
+    set_username_and_password(email_response, password_response)
+    os.system('py src/email_reader/emailreader.py')
 
 
 
