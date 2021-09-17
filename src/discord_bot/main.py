@@ -7,6 +7,7 @@ import discord_components
 import numpy as np
 import os
 import re as regex
+import time
 
 # GET EMAIL READER
 import sys
@@ -26,6 +27,11 @@ components_client = discord_components.DiscordComponents(bot)
 accessible_channels = []
 email_channel = None
 roles_with_access = []
+gmail_server = None
+enable_search = False
+
+email_login = None
+password_login = None
 
 # COMMANDS
 @bot.command()
@@ -34,6 +40,10 @@ async def configure(context):
     global roles_with_access
     global email_channel
     global accessible_channels
+    global gmail_server
+    global enable_search
+    global email_login
+    global password_login
 
      # GET MESSAGE CONTEXT
     author = context.author
@@ -163,9 +173,21 @@ async def configure(context):
     await direct_message_channel.send("....")
     await direct_message_channel.send("returning to {0}".format(channel))
 
-    set_username_and_password(email_response, password_response)
-    os.system('py src/email_reader/emailreader.py')
+    email_login = email_response.content
+    password_login = password_response.content    
+    
 
+@bot.command()
+async def start(context):
+    global enable_search
+
+    enable_search = True
+    while enable_search:
+        start_email_server(email_login, password_login)
+        await email_search()
+        stop_email_server()
+        time.sleep(10)
+    
 
 
 # START UP EVENT
@@ -174,6 +196,7 @@ async def on_ready():
     print("{0.user} has arrived!".format(bot))
     channels = bot.get_all_channels()
     update_usable_channels(channels)
+
 
 # ON MESSAGE EVENT
 @bot.event
@@ -192,6 +215,7 @@ def create_role_select_menu(roles):
         )
     return select
 
+
 # CREATES ALL THE ROLES OPTIONS FOR A SELECT MENU
 def create_roles_options(roles):
     options = []
@@ -205,6 +229,7 @@ def create_roles_options(roles):
         options.append(option)
     return options
 
+
 # CREATES A SELECT MENU CONSISTING OF THE GIVEN CHANNELS
 def create_channels_select_menu(channels):
     options = create_channels_options(channels)
@@ -213,6 +238,7 @@ def create_channels_select_menu(channels):
         options = options
     )
     return select
+
 
 # CREATES ALL THE CHANNEL OPTIONS FOR A SELECT MENU
 def create_channels_options(channels):
@@ -227,6 +253,7 @@ def create_channels_options(channels):
         options.append(option)
     return options
 
+
 # FIND ALL CHANNELS ACCESABLE BY EMAILIA          
 def update_usable_channels(channels): 
     for channel in channels:
@@ -235,10 +262,12 @@ def update_usable_channels(channels):
         if bot.user not in channel.members: continue
         accessible_channels.append(channel)
 
+
 # PRINT OUT ALL CHANNELS ACCESSIBLE BY EMAILIA
 def print_usable_channels():
     for channel in accessible_channels:
         print(channel)
+
 
 # GETS THE CHANNEL OBJECT FROM THE CHANNEL NAME
 def get_channel_from_string(channel_name, channels):
@@ -247,12 +276,14 @@ def get_channel_from_string(channel_name, channels):
             return channel
     return None
 
+
 # GETS THE ROLE OBJECT FROM THE CHANNEL NAME
 def get_role_from_string(role_name, roles):
     for role in roles:
         if role_name == str(role):
             return role
     return None
+
 
 # CONVERT THE CHANNEL LIST TO A LIST OF CHANNEL NAMES
 def channel_list_to_string_list(channel_list):
@@ -261,6 +292,7 @@ def channel_list_to_string_list(channel_list):
         string_list.append(str(channel))
     return string_list
 
+
 # CONVER THE ROLE LIST TO A LIST OF ROLE NAMES
 def role_list_to_string_list(role_list):
     string_list = []
@@ -268,11 +300,52 @@ def role_list_to_string_list(role_list):
         string_list.append(str(role))
     return string_list
 
+
 # GET THE TOTKEN FOR EMAILIA FROM ENVIRONMENT FILE
 def get_token():
     token = os.getenv('TOKEN')
     return token
 
-# RUN EMAILIA
-bot.run(get_token())
+
+def start_email_server(username, password):
+    global enable_search
+    global gmail_server
+
+    gmail_server = emailreader.Gmail()
+    gmail_server.main(username, password)
+
+
+def stop_email_server():
+    global gmail_server
+
+    gmail_server.logout()
+    gmail_server = None
+
+async def mirror_emails(emails):
+    global email_channel
+
+    for email in emails:
+        await email_channel.send("New Email!")
+        await email_channel.send("------------------------------------------------------")
+        await email_channel.send("Sender: {0}".format(email.sender))
+        await email_channel.send("Recieved by: {0}".format(email.receiver))
+        await email_channel.send("Subject: {0}".format(email.subject))
+        await email_channel.send("Content: {0}".format(email.content))
+        await email_channel.send("Date: {0}".format(email.date))
+        await email_channel.send("------------------------------------------------------")
+
+async def email_search():
+    global enable_search
+    global gmail_server
+
+    print("searching for emails")
+    new_emails = gmail_server.get_unseen_mail()
+    print("num emails found: {0}".format(str(len(new_emails))))
+    if len(new_emails) > 0:
+        await mirror_emails(new_emails)
+
+if __name__ == '__main__':
+
+    # RUN EMAILIA
+    bot.run(get_token())
 
