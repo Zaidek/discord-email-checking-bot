@@ -17,7 +17,7 @@ class Gmail():
         # Get details
         self.username = username
         self.password = password
-        self.imap = imaplib.IMAP4_SSL(host = 'imap.gmail.com', port = 993)
+        self.imap_client = imaplib.IMAP4_SSL(host = 'imap.gmail.com', port = 993)
 
         # Try connect to Gmail
         is_logged_in, details = self.imap_client.login(username, password)
@@ -25,17 +25,24 @@ class Gmail():
         else:
             print("Login Successful!")
 
-    def inbox(self, readonly = True):
+    def logout(self):
+        #self.close_inbox()
+        self.imap_client.logout()
+
+    def open_inbox(self, readonly = True):
         self.imap_client.select('inbox')
+
+    def close_inbox(self):
+        self.imap_client.unselect()
 
     def get_unseen_mail(self):
         _, data = self.imap_client.search(None, 'UNSEEN')
-        emails = extract_email_message(data)
+        emails = self.extract_email_message(data)
         return emails
         
     def get_all_mail(self):
         _, data = self.imap.client.search(None, "ALL")
-        emails = extract_email_message(data)
+        emails = self.extract_email_message(data)
         return emails
         
     def extract_email_message(self, data):
@@ -52,8 +59,7 @@ class Gmail():
 
     def main(self, username, password):
         self.login(username, password)
-        self.inbox()
-        self.get_unseen_mail()
+        self.open_inbox()
 
 
 # Class to store individual Emails
